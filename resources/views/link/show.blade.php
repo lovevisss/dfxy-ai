@@ -1,0 +1,16 @@
+@extends('layouts.master')
+
+
+@section('content')
+
+    <div class="card">
+        <!-- Photo -->
+        <div class="img-responsive img-responsive-21x9 card-img-top" style="background-image: url(...)"></div>
+        <div class="card-body">
+            <h3 class="card-title">Card with title and image</h3>
+            <p class="text-secondary">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aperiam deleniti fugit incidunt, iste, itaque minima
+                neque pariatur perferendis sed suscipit velit vitae voluptatem.</p>
+        </div>
+    </div>
+
+@endsection
