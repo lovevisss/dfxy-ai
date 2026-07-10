@@ -140,7 +140,7 @@
                             $tagName = trim(preg_replace('/[\s\x{00A0}\x{3000}]+/u', ' ', $tag->name ?? ''));
                         @endphp
                         @if($tag->id != 3 && $tagName !== '')
-                            <a class="badge ai-tag text-decoration-none px-3 py-2" href="/tag/{{ $tag->id }}">
+                            <a class="ai-tag text-decoration-none px-3 py-2" href="/tag/{{ $tag->id }}">
                                 {{ $tagName }}
                             </a>
                         @endif
