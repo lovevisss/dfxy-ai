@@ -3,24 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ai;
-use App\Models\Link;
 use App\Models\Tag;
 use Detection\MobileDetect;
 use Illuminate\Http\Request;
 
 class AiController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth')->except(['index', 'show']);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(MobileDetect $detect)
     {
-        $ais = Ai::all();
+        $ais = Ai::with('tags')->latest()->get();
 
-        $tags = Tag::all();
+        $tags = Tag::orderBy('name')->get();
         $isMobile = $detect->isMobile();
-        $num = $isMobile ? 2 : 5;
-        return view('ai.index',compact('ais','tags','num'));
+        return view('ai.index',compact('ais','tags','isMobile'));
     }
 
     /**
@@ -28,7 +31,9 @@ class AiController extends Controller
      */
     public function create()
     {
-        return view('ai.create');
+        $tags = Tag::orderBy('name')->get();
+
+        return view('ai.create', compact('tags'));
     }
 
     /**
@@ -36,14 +41,28 @@ class AiController extends Controller
      */
     public function store(Request $request)
     {
-        $ai = Ai::create($request->all());
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'path' => ['nullable', 'string', 'max:255'],
+            'desc' => ['nullable', 'string', 'max:1000'],
+            'img' => ['nullable', 'image', 'max:2048'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['exists:tags,id'],
+        ]);
+
+        $tags = $data['tags'] ?? [];
+        unset($data['img'], $data['tags']);
+
+        $ai = Ai::create($data);
         if($request->hasFile('img')){
             $ai->clearMediaCollection('image');
             $ai->addMediaFromRequest('img')->toMediaCollection('image');
+            $ai->update(['img' => $ai->image() ?? '']);
         }
 
+        $ai->tags()->sync($tags);
 
-        return redirect(route('ai.index'));
+        return redirect(route('ai.index'))->with('status', 'AI 智能体已添加');
     }
 
     /**
@@ -59,7 +78,9 @@ class AiController extends Controller
      */
     public function edit(Ai $ai)
     {
-        return view('ai.edit',compact('ai'));
+        $tags = Tag::orderBy('name')->get();
+
+        return view('ai.edit',compact('ai', 'tags'));
     }
 
     /**
@@ -67,18 +88,28 @@ class AiController extends Controller
      */
     public function update(Request $request, Ai $ai)
     {
-        $ai->update(
-            $request->only('name','desc')
-        );
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'path' => ['nullable', 'string', 'max:255'],
+            'desc' => ['nullable', 'string', 'max:1000'],
+            'img' => ['nullable', 'image', 'max:2048'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['exists:tags,id'],
+        ]);
+
+        $tags = $data['tags'] ?? [];
+        unset($data['img'], $data['tags']);
+
+        $ai->update($data);
         if($request->hasFile('img')){
             $ai->clearMediaCollection('image');
             $ai->addMediaFromRequest('img')->toMediaCollection('image');
+            $ai->update(['img' => $ai->image() ?? '']);
         }
 
-        if ($request->has('tags')) {
-            $ai->tags()->attach($request->tags);
-        }
-        return redirect(route('link.index'));
+        $ai->tags()->sync($tags);
+
+        return redirect(route('ai.index'))->with('status', 'AI 智能体已更新');
     }
 
     /**
@@ -86,6 +117,10 @@ class AiController extends Controller
      */
     public function destroy(Ai $ai)
     {
-        //
+        $ai->clearMediaCollection('image');
+        $ai->tags()->detach();
+        $ai->delete();
+
+        return redirect(route('ai.index'))->with('status', 'AI 智能体已删除');
     }
 }
