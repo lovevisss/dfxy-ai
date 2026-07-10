@@ -21,9 +21,20 @@ class AiController extends Controller
     {
         $ais = Ai::with('tags')->latest()->get();
 
-        $tags = Tag::orderBy('name')->get();
+        $tags = $this->visibleTags();
         $isMobile = $detect->isMobile();
         return view('ai.index',compact('ais','tags','isMobile'));
+    }
+
+    private function visibleTags()
+    {
+        return Tag::whereNotNull('name')
+            ->orderBy('name')
+            ->get()
+            ->filter(function ($tag) {
+                return preg_replace('/[\s\x{00A0}\x{3000}]+/u', '', $tag->name) !== '';
+            })
+            ->values();
     }
 
     /**
@@ -31,7 +42,7 @@ class AiController extends Controller
      */
     public function create()
     {
-        $tags = Tag::orderBy('name')->get();
+        $tags = $this->visibleTags();
 
         return view('ai.create', compact('tags'));
     }
@@ -78,7 +89,7 @@ class AiController extends Controller
      */
     public function edit(Ai $ai)
     {
-        $tags = Tag::orderBy('name')->get();
+        $tags = $this->visibleTags();
 
         return view('ai.edit',compact('ai', 'tags'));
     }

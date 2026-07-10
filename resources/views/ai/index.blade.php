@@ -74,6 +74,13 @@
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 3;
             overflow: hidden;
+            margin-top: .5rem;
+        }
+
+        .ai-card .card-title {
+            display: block;
+            line-height: 1.35;
+            word-break: break-word;
         }
 
         .ai-admin-actions {
@@ -129,9 +136,12 @@
             @if($tags->isNotEmpty())
                 <div class="d-flex flex-wrap gap-2 mb-4">
                     @foreach($tags as $tag)
-                        @if($tag->id != 3)
+                        @php
+                            $tagName = trim(preg_replace('/[\s\x{00A0}\x{3000}]+/u', ' ', $tag->name ?? ''));
+                        @endphp
+                        @if($tag->id != 3 && $tagName !== '')
                             <a class="badge ai-tag text-decoration-none px-3 py-2" href="/tag/{{ $tag->id }}">
-                                {{ $tag->name }}
+                                {{ $tagName }}
                             </a>
                         @endif
                     @endforeach
@@ -154,12 +164,22 @@
                                         style="background-image: url('{{ $ai->image() ?: asset('images/banner.png') }}')"
                                     ></div>
                                     <div class="card-body ai-card-body">
+                                        @php
+                                            $visibleTags = $ai->tags
+                                                ->map(function ($tag) {
+                                                    $tag->display_name = trim(preg_replace('/[\s\x{00A0}\x{3000}]+/u', ' ', $tag->name ?? ''));
+                                                    return $tag;
+                                                })
+                                                ->filter(fn ($tag) => $tag->display_name !== '');
+                                        @endphp
                                         <div class="d-flex flex-wrap gap-1 mb-3">
-                                            @forelse($ai->tags as $tag)
-                                                <span class="badge {{ $tag->color ?: 'bg-blue-lt' }}">{{ $tag->name }}</span>
-                                            @empty
+                                            @if($visibleTags->isNotEmpty())
+                                                @foreach($visibleTags as $tag)
+                                                    <span class="badge {{ $tag->color ?: 'bg-blue-lt' }}">{{ $tag->display_name }}</span>
+                                                @endforeach
+                                            @else
                                                 <span class="badge bg-secondary-lt">未分类</span>
-                                            @endforelse
+                                            @endif
                                         </div>
                                         <h2 class="card-title h3 mb-2">{{ $ai->name }}</h2>
                                         <p class="text-secondary ai-card-desc mb-0">{{ $ai->desc }}</p>
