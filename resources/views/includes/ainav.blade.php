@@ -3,7 +3,7 @@
 <nav class="navbar navbar-expand-lg" style="background-color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
     <div class="container px-4 px-lg-5">
         {{-- 1. 网站Logo/导航标题：匹配目标站点蓝色文字+加粗风格 --}}
-        <img src="{{asset('assets/img/logo.png')}}" style="/* 1. 控制Logo尺寸：高度匹配导航栏（避免过高/过矮），宽度自动保持比例 */
+        <img src="{{asset('assets/img/logo2.jpg')}}" style="/* 1. 控制Logo尺寸：高度匹配导航栏（避免过高/过矮），宽度自动保持比例 */
                 height: 108px;
                 width: auto;
                 /* 2. 防变形：确保图片拉伸时不扭曲 */
@@ -39,20 +39,29 @@
                         添加分类
                     </a>
                 </li> --}}
-                {{-- “添加链接”按钮：hover变主蓝色，匹配目标站点交互 --}}
-                <li class="nav-item">
-                    <a class="nav-link px-lg-3 py-2 py-lg-3" href="{{ route('AiTools.create') }}"
-                       style="color: #333; font-size: 14px; transition: color 0.2s ease;">
-                        添加链接
-                    </a>
-                </li>
+                @auth
+                    {{-- “添加链接”按钮：仅登录用户可见 --}}
+                    <li class="nav-item">
+                        <a class="nav-link px-lg-3 py-2 py-lg-3" href="{{ route('AiTools.create') }}"
+                           style="color: #333; font-size: 14px; transition: color 0.2s ease;">
+                            添加链接
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-lg-3 py-2 py-lg-3" href="{{ route('AiTools.manage') }}"
+                           style="color: #333; font-size: 14px; transition: color 0.2s ease;">
+                            后台维护
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-lg-3 py-2 py-lg-3" href="{{ route('AiTools.index') }}"
+                           style="color: {{ request()->routeIs('AiTools.index') ? '#165DFF' : '#333' }}; font-size: 14px; transition: color 0.2s ease;">
+                            首页
+                        </a>
+                    </li>
+                @endauth
                 {{-- （可选）补充目标站点常见的“首页”导航，保持菜单完整性 --}}
-                <li class="nav-item">
-                    <a class="nav-link px-lg-3 py-2 py-lg-3" href="{{ route('AiTools.index') }}"
-                       style="color: {{ request()->routeIs('AiTools.index') ? '#165DFF' : '#333' }}; font-size: 14px; transition: color 0.2s ease;">
-                        首页
-                    </a>
-                </li>
+
             </ul>
         </div>
     </div>

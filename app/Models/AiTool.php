@@ -31,4 +31,9 @@ class AiTool extends Model implements HasMedia
     public function tag(){
         return $this->belongsTo(Tag::class);
     }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
 }

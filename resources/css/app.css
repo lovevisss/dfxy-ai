@@ -1,8 +1,7 @@
-
-
 @import "startbootstrap-clean-blog/dist/css/styles.css";
 @import "admin-lte/dist/css/adminlte.css";
 @import "admin-lte/plugins/fontawesome-free/css/all.min.css";
+@import "admin-lte/plugins/fontawesome-free/css/v4-shims.min.css";
 
 @tailwind base;
 @tailwind components;

@@ -26,6 +26,9 @@ Route::resource('link', \App\Http\Controllers\LinkController::class);
 Route::resource('ai', \App\Http\Controllers\AiController::class);
 Route::resource('category', \App\Http\Controllers\CategoryController::class);
 Route::resource('AiTools', \App\Http\Controllers\AiToolController::class);
+Route::get('admin/aitools', [\App\Http\Controllers\AiToolController::class, 'manage'])
+//    ->middleware('check.role:role')
+    ->name('AiTools.manage');
 
 
 Route::get('tag/{tag}', [\App\Http\Controllers\TagController::class, 'show']);
