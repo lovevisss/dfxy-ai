@@ -42,8 +42,19 @@ class TagController extends Controller
 //        dd($tag);
         $isMobile = $detect->isMobile();
         $num = $isMobile ? 2 : 5;
-        $ais = $tag->ais;
-        $tags = Tag::all();
+        $ais = $tag->ais()
+            ->with('tags')
+            ->orderBy('sort_order')
+            ->latest()
+            ->latest('ais.id')
+            ->get();
+        $tags = Tag::whereNotNull('name')
+            ->orderBy('name')
+            ->get()
+            ->filter(function ($tag) {
+                return preg_replace('/[\s\x{00A0}\x{3000}]+/u', '', $tag->name) !== '';
+            })
+            ->values();
         return view('ai.index',compact('ais','tags', 'isMobile', 'num'));
 
     }

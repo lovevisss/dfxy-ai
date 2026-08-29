@@ -112,15 +112,15 @@
                         <a class="btn btn-primary" href="https://cloud.zufedfc.edu.cn/ai-knowledge/createPro">
                             创建智能体
                         </a>
-                        @auth
+                        @if(auth()->check() && auth()->user()->role === 1)
                             <a class="btn btn-outline-primary" href="{{ route('ai.create') }}">
                                 添加条目
                             </a>
-                        @else
+                        @elseif(auth()->guest())
                             <a class="btn btn-outline-secondary" href="{{ route('login') }}">
                                 登录后维护
                             </a>
-                        @endauth
+                        @endif
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@
                                     </div>
                                 </a>
 
-                                @auth
+                                @if(auth()->check() && auth()->user()->role === 1)
                                     <div class="ai-admin-actions px-3 py-2 d-flex justify-content-between align-items-center">
                                         <a class="btn btn-sm btn-outline-primary" href="{{ route('ai.edit', $ai) }}">编辑</a>
                                         <form action="{{ route('ai.destroy', $ai) }}" method="POST" onsubmit="return confirm('确认删除这个 AI 智能体吗？')">
@@ -195,7 +195,7 @@
                                             <button class="btn btn-sm btn-outline-danger" type="submit">删除</button>
                                         </form>
                                     </div>
-                                @endauth
+                                @endif
                             </div>
                         </div>
                     @endforeach

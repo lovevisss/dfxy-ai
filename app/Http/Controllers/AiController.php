@@ -11,7 +11,7 @@ class AiController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth')->except(['index', 'show']);
+        $this->middleware(['auth', 'check.role:role'])->except(['index', 'show']);
     }
 
     /**
@@ -19,7 +19,11 @@ class AiController extends Controller
      */
     public function index(MobileDetect $detect)
     {
-        $ais = Ai::with('tags')->latest()->get();
+        $ais = Ai::with('tags')
+            ->orderBy('sort_order')
+            ->latest()
+            ->latest('id')
+            ->get();
 
         $tags = $this->visibleTags();
         $isMobile = $detect->isMobile();
@@ -56,11 +60,13 @@ class AiController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'path' => ['nullable', 'string', 'max:255'],
             'desc' => ['nullable', 'string', 'max:1000'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'img' => ['nullable', 'image', 'max:2048'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['exists:tags,id'],
         ]);
 
+        $data['sort_order'] = $data['sort_order'] ?? 100;
         $tags = $data['tags'] ?? [];
         unset($data['img'], $data['tags']);
 
@@ -103,11 +109,13 @@ class AiController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'path' => ['nullable', 'string', 'max:255'],
             'desc' => ['nullable', 'string', 'max:1000'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'img' => ['nullable', 'image', 'max:2048'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['exists:tags,id'],
         ]);
 
+        $data['sort_order'] = $data['sort_order'] ?? 100;
         $tags = $data['tags'] ?? [];
         unset($data['img'], $data['tags']);
 

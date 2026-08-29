@@ -46,6 +46,14 @@
                             </div>
 
                             <div class="mb-3">
+                                <label class="form-label" for="sort_order">排序值</label>
+                                <input id="sort_order" type="number" min="0" max="9999" class="form-control @error('sort_order') is-invalid @enderror" name="sort_order" value="{{ old('sort_order', 100) }}">
+                                @error('sort_order')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label" for="tags">关联标签</label>
                                 <select name="tags[]" id="tags" class="form-select select-all @error('tags') is-invalid @enderror" multiple>
                                     @foreach($tags as $tag)
