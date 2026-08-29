@@ -12,7 +12,7 @@
                         </div>
                     </div>
 
-                    <form action="{{ route('ai.store') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ route('ai.store', [], false) }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <div class="card-body">
                             @if ($errors->any())

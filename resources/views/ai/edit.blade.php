@@ -12,7 +12,7 @@
                         </div>
                     </div>
 
-                    <form action="{{ route('ai.update', $ai) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('ai.update', $ai, false) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
