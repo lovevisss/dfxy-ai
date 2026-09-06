@@ -7,66 +7,58 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct()
     {
-
+        $this->middleware('auth')->except('show');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    public function index()
+    {
+        $categories = Category::where('level', 1)->withCount('links')->orderBy('id')->get();
+
+        return view('category.index', compact('categories'));
+    }
+
     public function create()
     {
         return view('category.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        Category::create($request->all());
+        $data = $request->validate(['name' => ['required', 'string', 'max:255']]);
+        Category::create($data + ['level' => 1, 'parent_id' => 0]);
 
-        return redirect(route('link.index'));
+        return redirect()->route('category.index')->with('status', '链接分类已添加');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Category $category)
     {
-//        get aitools
+        abort_unless((int) $category->level === 2, 404);
         $ais = $category->aitools;
-
         $categories = Category::where('level', 2)->get();
 
         return view('aitool.index2', compact('ais', 'categories'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Category $category)
     {
-        //
+        abort_unless((int) $category->level === 1, 404);
+
+        return view('category.edit', compact('category'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Category $category)
     {
-        //
+        abort_unless((int) $category->level === 1, 404);
+        $data = $request->validate(['name' => ['required', 'string', 'max:255']]);
+        $category->update($data);
+
+        return redirect()->route('category.index')->with('status', '链接分类已更新');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Category $category)
     {
-        //
+        abort(405);
     }
 }

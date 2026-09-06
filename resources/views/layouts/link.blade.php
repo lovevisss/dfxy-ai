@@ -14,7 +14,7 @@
     <nav class="topnav" aria-label="主导航"><a class="current" href="{{ route('link.index') }}">链接导航</a><a href="{{ route('ai.index') }}">AI 助手</a></nav>
     <div class="account">
         @auth
-            <span class="account-name">{{ auth()->user()->name }}</span>
+            <a class="category-manage-link" href="{{ route('category.index') }}">管理分类</a><span class="account-name">{{ auth()->user()->name }}</span>
             <form action="{{ route('logout') }}" method="post">@csrf<button class="text-button" type="submit">退出</button></form>
             <a class="button primary" href="{{ route('link.create') }}">＋ 添加链接</a>
         @else

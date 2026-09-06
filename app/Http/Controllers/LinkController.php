@@ -11,7 +11,7 @@ class LinkController extends Controller
 {
     public function index()
     {
-        $categories = Category::with('links.media')->orderBy('id')->get();
+        $categories = Category::where('level', 1)->with('links.media')->orderBy('id')->get();
         $uncategorized = Link::with('media')->whereDoesntHave('category')->get();
 
         return view('link.index', compact('categories', 'uncategorized'));
@@ -19,7 +19,7 @@ class LinkController extends Controller
 
     public function create()
     {
-        return view('link.create', ['categories' => Category::all()]);
+        return view('link.create', ['categories' => Category::where('level', 1)->orderBy('id')->get()]);
     }
 
     public function store(Request $request)
@@ -39,11 +39,15 @@ class LinkController extends Controller
 
     public function edit(Link $link)
     {
-        return view('link.edit', ['link' => $link, 'categories' => Category::all()]);
+        abort_if($link->category && (int) $link->category->level !== 1, 404);
+
+        return view('link.edit', ['link' => $link, 'categories' => Category::where('level', 1)->orderBy('id')->get()]);
     }
 
     public function update(Request $request, Link $link)
     {
+        abort_if($link->category && (int) $link->category->level !== 1, 404);
+
         $data = $this->validatedData($request, $link);
         if ($request->hasFile('image_path')) {
             $previousImages = $link->getMedia('image');
@@ -67,7 +71,7 @@ class LinkController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'url' => ['required', 'url:http,https', 'max:255', Rule::unique('links')->ignore($link?->id)],
             'desc' => ['nullable', 'string', 'max:5000'],
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('level', 1)],
             'image_path' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
         ]);
         unset($data['image_path']);

@@ -243,3 +243,15 @@ h1>span { color: #b46a50; }
 }
 @media (max-width: 350px) { .link-grid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+.category-manager-actions { display: flex; justify-content: flex-end; margin-bottom: 18px; }
+.category-manager-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 19px 0; border-bottom: 1px solid var(--line); }
+.category-manager-row:first-child { padding-top: 0; }
+.category-manager-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.category-manager-row small { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+.category-manage-link { font-size: 12px; white-space: nowrap; color: var(--muted); }
+.category-manage-link:hover { color: var(--accent); }
+@media (max-width: 480px) { .category-manage-link { font-size: 10px; } .account .button { padding: 8px; } }
+@media (max-width: 480px) {
+    .topbar:has(.category-manage-link) { height: auto; flex-wrap: wrap; padding-top: 12px; padding-bottom: 12px; }
+    .topbar:has(.category-manage-link) .account { width: 100%; justify-content: flex-end; }
+}

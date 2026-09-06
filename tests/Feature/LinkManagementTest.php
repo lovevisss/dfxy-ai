@@ -72,12 +72,12 @@ class LinkManagementTest extends TestCase
         $this->get(route('link.edit', $link))->assertSee('保留输入');
     }
 
-    public function test_child_categories_and_uncategorized_links_are_visible(): void
+    public function test_ai_categories_are_hidden_and_uncategorized_links_remain_visible(): void
     {
         $category = Category::create(['name' => '子分类', 'level' => 2]);
         Link::create(['title' => '子分类工具', 'url' => 'https://child.example.com', 'category_id' => $category->id]);
         Link::create(['title' => '未归类工具', 'url' => 'https://other.example.com']);
-        $this->get(route('link.index'))->assertOk()->assertSee('子分类工具')->assertSee('未归类工具');
+        $this->get(route('link.index'))->assertOk()->assertDontSee('子分类工具')->assertDontSee('子分类')->assertSee('未归类工具');
     }
 
     public function test_login_returns_user_to_requested_edit_page(): void
