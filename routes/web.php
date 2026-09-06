@@ -22,7 +22,10 @@ Route::get('/', function () {
 //    return "this is the page for links";
 //});
 
-Route::resource('link', \App\Http\Controllers\LinkController::class);
+Route::resource('link', \App\Http\Controllers\LinkController::class)->only('index');
+Route::resource('link', \App\Http\Controllers\LinkController::class)
+    ->except(['index', 'show'])->middleware('auth');
+Route::resource('link', \App\Http\Controllers\LinkController::class)->only('show');
 Route::resource('ai', \App\Http\Controllers\AiController::class);
 Route::resource('category', \App\Http\Controllers\CategoryController::class);
 Route::resource('AiTools', \App\Http\Controllers\AiToolController::class);
@@ -30,10 +33,9 @@ Route::get('admin/aitools', [\App\Http\Controllers\AiToolController::class, 'man
 //    ->middleware('check.role:role')
     ->name('AiTools.manage');
 
-
 Route::get('tag/{tag}', [\App\Http\Controllers\TagController::class, 'show']);
 
-Route::get('/form/largePayment', function (){
+Route::get('/form/largePayment', function () {
     return view('form.largePayment');
 });
 
@@ -43,8 +45,8 @@ Route::get('post/{id}', [\App\Http\Controllers\PostController::class, 'show'])->
 Route::get('contact', [\App\Http\Controllers\PublicController::class, 'contact'])->name('contact');
 
 Route::prefix('user')->group(
-    function (){
-        Route::get('dashboard', [\App\Http\Controllers\PublicController::class,'index']);
+    function () {
+        Route::get('dashboard', [\App\Http\Controllers\PublicController::class, 'index']);
     }
 
 );

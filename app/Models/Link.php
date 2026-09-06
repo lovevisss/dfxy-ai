@@ -10,12 +10,13 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Link extends Model implements HasMedia
 {
-    use InteractsWithMedia;
     use HasFactory;
+    use InteractsWithMedia;
 
     protected $guarded = [];
 
-    public function category(){
+    public function category()
+    {
         return $this->belongsTo(Category::class);
     }
 
@@ -26,13 +27,18 @@ class Link extends Model implements HasMedia
             ->height(160);
     }
 
-    public function image(){
-//        return null;
-        if(!$this->media->first()) return null;
+    public function image()
+    {
+        //        return null;
+        if (! $this->media->first()) {
+            return null;
+        }
+
         return $this->media->first()->getFullUrl('thumb');
     }
 
-    public function editable(){
-        return true;
+    public function editable()
+    {
+        return auth()->check();
     }
 }

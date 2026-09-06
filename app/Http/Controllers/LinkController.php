@@ -5,88 +5,73 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Link;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class LinkController extends Controller
 {
-
-    public function __construct()
-    {
-//        share data on all
-
-        view()->share('categories', Category::all() );
-    }
-
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $categories = Category::where('level' ,1)->get();
-        $links = Link::all();
-        return view('link.index', compact('links', 'categories'));
+        $categories = Category::with('links.media')->orderBy('id')->get();
+        $uncategorized = Link::with('media')->whereDoesntHave('category')->get();
+
+        return view('link.index', compact('categories', 'uncategorized'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('link.create');
+        return view('link.create', ['categories' => Category::all()]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $link = Link::create($request->all());
-        if($request->hasFile('image_path')){
-            $link->clearMediaCollection('image');
+        $link = Link::create($this->validatedData($request));
+        if ($request->hasFile('image_path')) {
             $link->addMediaFromRequest('image_path')->toMediaCollection('image');
         }
 
-
-        return redirect(route('link.index'));
+        return redirect()->route('link.index')->with('status', '链接已添加');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Link $link)
     {
-        //
+        return redirect()->route('link.index');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Link $link, Request $request)
+    public function edit(Link $link)
     {
-        return view('link.edit', compact('link'));
+        return view('link.edit', ['link' => $link, 'categories' => Category::all()]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Link $link)
     {
-//        dd($request->hasFile('image_path'));
-        if($request->hasFile('image_path')){
-            $link->clearMediaCollection('image');
+        $data = $this->validatedData($request, $link);
+        if ($request->hasFile('image_path')) {
+            $previousImages = $link->getMedia('image');
             $link->addMediaFromRequest('image_path')->toMediaCollection('image');
+            $previousImages->each->delete();
         }
-//        $link->addMedia($request->file)->toMediaCollection('image');
+        $link->update($data);
 
-        $link->update($request->all());
-
-        return redirect(route('link.index'));
+        return redirect()->route('link.index')->with('status', '链接已更新');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Link $link)
     {
-        //
+        // Deletion is not exposed by the link management interface.
+        abort(405);
+    }
+
+    private function validatedData(Request $request, ?Link $link = null): array
+    {
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'url' => ['required', 'url:http,https', 'max:255', Rule::unique('links')->ignore($link?->id)],
+            'desc' => ['nullable', 'string', 'max:5000'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'image_path' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
+        ]);
+        unset($data['image_path']);
+
+        return $data;
     }
 }

@@ -28,8 +28,13 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::share('title', env('APP_NAME'));
-        View::share('posts', Post::all());
-
-        View::share('tags', Tag::all());
+        View::composer('welcome', function ($view) {
+            $view->with('posts', Post::all());
+        });
+        View::composer(['ai.index', 'ai.create', 'ai.edit'], function ($view) {
+            if (! array_key_exists('tags', $view->getData())) {
+                $view->with('tags', Tag::all());
+            }
+        });
     }
 }
