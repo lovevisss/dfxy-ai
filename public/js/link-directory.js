@@ -39,4 +39,12 @@
     };
     window.addEventListener('hashchange', syncCategory);
     syncCategory();
+
+    document.querySelectorAll('[data-delete-form]').forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!window.confirm(form.dataset.confirmMessage)) {
+                event.preventDefault();
+            }
+        });
+    });
 })();

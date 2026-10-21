@@ -33,7 +33,7 @@ class LinkManagementTest extends TestCase
     {
         $link = $this->link();
         $this->get(route('link.index'))->assertOk()->assertSee('示例工具')
-            ->assertSee('登录管理')->assertDontSee(route('link.edit', $link));
+            ->assertSee('登录管理')->assertDontSee(route('link.edit', $link))->assertDontSee('删除');
         $this->assertFalse($link->editable());
     }
 
@@ -60,6 +60,84 @@ class LinkManagementTest extends TestCase
         $this->put(route('link.update', $link), ['title' => '更新工具', 'url' => $link->url, 'desc' => '新介绍', 'category_id' => $link->category_id, 'id' => 999])->assertRedirect(route('link.index'));
         $this->assertDatabaseHas('links', ['id' => $link->id, 'title' => '更新工具']);
         $this->assertDatabaseCount('links', 2);
+    }
+
+    public function test_authenticated_users_can_delete_links_in_link_categories(): void
+    {
+        $link = $this->link();
+        $otherLink = Link::create([
+            'title' => '保留工具',
+            'url' => 'https://keep.example.com',
+            'category_id' => $link->category_id,
+        ]);
+        $this->actingAs(User::factory()->create());
+
+        $this->get(route('link.index'))->assertOk()
+            ->assertSee(route('link.destroy', $link))
+            ->assertSee('确认永久删除“示例工具”吗？此操作无法撤销。');
+        $this->delete(route('link.destroy', $link))
+            ->assertRedirect(route('link.index'))
+            ->assertSessionHas('status', '链接已删除');
+
+        $this->assertDatabaseMissing('links', ['id' => $link->id]);
+        $this->assertDatabaseHas('links', ['id' => $otherLink->id]);
+        $this->assertDatabaseHas('categories', ['id' => $link->category_id]);
+        $this->get(route('link.index'))->assertOk()
+            ->assertDontSee('示例工具')
+            ->assertSee('保留工具')
+            ->assertSee('<span class="count">1</span>', false);
+    }
+
+    public function test_authenticated_users_can_delete_uncategorized_links(): void
+    {
+        $link = Link::create(['title' => '未归类工具', 'url' => 'https://other.example.com']);
+        $this->actingAs(User::factory()->create());
+
+        $this->delete(route('link.destroy', $link))
+            ->assertRedirect(route('link.index'))
+            ->assertSessionHas('status', '链接已删除');
+
+        $this->assertDatabaseMissing('links', ['id' => $link->id]);
+    }
+
+    public function test_links_in_ai_categories_cannot_be_deleted_from_link_management(): void
+    {
+        $category = Category::create(['name' => 'AI 分类', 'level' => 2]);
+        $link = Link::create([
+            'title' => 'AI 工具',
+            'url' => 'https://ai.example.com',
+            'category_id' => $category->id,
+        ]);
+        $this->actingAs(User::factory()->create());
+
+        $this->delete(route('link.destroy', $link))->assertNotFound();
+
+        $this->assertDatabaseHas('links', ['id' => $link->id]);
+    }
+
+    public function test_deleting_a_link_removes_its_media_files_and_records(): void
+    {
+        Storage::fake('public');
+        Queue::fake();
+        $this->actingAs(User::factory()->create());
+        $this->post(route('link.store'), [
+            'title' => '待删除图标',
+            'url' => 'https://delete.example.com',
+            'image_path' => UploadedFile::fake()->image('delete.png'),
+        ]);
+        $link = Link::first();
+        $media = $link->getFirstMedia('image');
+        $relativePath = $media->getPathRelativeToRoot();
+        $thumbnailPath = $media->getPathRelativeToRoot('thumb');
+        Storage::disk($media->disk)->assertExists($relativePath);
+        Storage::disk($media->conversions_disk)->assertExists($thumbnailPath);
+
+        $this->delete(route('link.destroy', $link))->assertRedirect(route('link.index'));
+
+        $this->assertDatabaseMissing('links', ['id' => $link->id]);
+        $this->assertDatabaseMissing('media', ['id' => $media->id]);
+        Storage::disk($media->disk)->assertMissing($relativePath);
+        Storage::disk($media->conversions_disk)->assertMissing($thumbnailPath);
     }
 
     public function test_invalid_updates_are_rejected_and_input_is_preserved(): void

@@ -61,8 +61,11 @@ class LinkController extends Controller
 
     public function destroy(Link $link)
     {
-        // Deletion is not exposed by the link management interface.
-        abort(405);
+        abort_if($link->category && (int) $link->category->level !== 1, 404);
+
+        $link->delete();
+
+        return redirect()->route('link.index')->with('status', '链接已删除');
     }
 
     private function validatedData(Request $request, ?Link $link = null): array

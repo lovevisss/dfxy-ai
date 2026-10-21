@@ -53,7 +53,16 @@
                                 <p class="card-description">{{ $link->desc ?: '从这里出发，发现更多实用内容。' }}</p>
                                 <div class="card-bottom"><span>{{ $group['name'] }}</span><span>{{ $safeUrl ? '访问网站' : '地址待完善' }} <span aria-hidden="true">↗</span></span></div>
                             </a>
-                            @auth<a class="edit-link" href="{{ route('link.edit', $link) }}" aria-label="编辑 {{ $link->title }}">@include('link.icon', ['icon' => 'edit']) 编辑</a>@endauth
+                            @auth
+                                <div class="card-actions">
+                                    <a class="card-action edit-link" href="{{ route('link.edit', $link) }}" aria-label="编辑 {{ $link->title }}">@include('link.icon', ['icon' => 'edit']) 编辑</a>
+                                    <form action="{{ route('link.destroy', $link) }}" method="post" data-delete-form data-confirm-message="确认永久删除“{{ $link->title }}”吗？此操作无法撤销。">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="card-action delete-link" type="submit" aria-label="删除 {{ $link->title }}">@include('link.icon', ['icon' => 'trash']) 删除</button>
+                                    </form>
+                                </div>
+                            @endauth
                         </article>
                     @endforeach
                 </div>
